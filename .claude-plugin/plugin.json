@@ -1,0 +1,34 @@
+{
+  "name": "cryptorefills",
+  "description": "Buy gift cards, top up phones, and get travel eSIMs with Bitcoin, Ethereum, Solana, USDC, USDT, and 15+ cryptos on Base, Polygon, Arbitrum, Tron. No account needed. 10,500+ brands, 180+ countries.",
+  "version": "1.1.0",
+  "author": {
+    "name": "Cryptorefills",
+    "email": "support@cryptorefills.com"
+  },
+  "homepage": "https://www.cryptorefills.com",
+  "repository": "https://github.com/cryptorefills/agents",
+  "license": "MIT",
+  "keywords": [
+    "gift-cards",
+    "esim",
+    "mobile-topup",
+    "crypto",
+    "mcp",
+    "x402",
+    "bitcoin",
+    "lightning",
+    "ethereum",
+    "solana",
+    "base",
+    "polygon",
+    "arbitrum",
+    "tron",
+    "usdc",
+    "usdt",
+    "litecoin",
+    "dogecoin",
+    "ton",
+    "sui"
+  ]
+}
