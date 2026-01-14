@@ -4,7 +4,7 @@ description: "Buy gift cards, top up phones, and get travel eSIMs with Bitcoin, 
 compatibility: "Requires MCP client connected to https://api.cryptorefills.com/mcp/http. Header: User-Agent: Cryptorefills-MCP/1.0. Crypto wallet for payment. No account or API key needed."
 metadata:
   author: cryptorefills
-  version: "1.1.0"
+  version: "1.2.0"
   homepage: "https://www.cryptorefills.com"
   repository: "https://github.com/cryptorefills/agents"
 ---
@@ -49,7 +49,7 @@ To configure the MCP connection in Claude Code:
 
 **Always confirm before purchasing.** Present product name, denomination, price, and payment method — wait for explicit user approval before calling `createOrder`.
 
-- **Set a per-session spending limit** (e.g., $50 max) and track cumulative spend across orders
+- **Set a per-session spending limit** (default: $100 max per session, $50 max per transaction — increase only if the user explicitly requests it) and track cumulative spend across orders
 - **Verify the quoted price** from `getProductPrice` before proceeding to `createOrder`
 - Digital goods are **non-refundable** once delivered
 - Gift card codes are **cash-like** — store securely, never share publicly or write to files
@@ -151,6 +151,8 @@ createOrder(body={
 ```
 
 Returns: `order_id`, `wallet_address`, `coin_amount`, `qr_url`, `qr_text` (payment URI), `payment_state`, `order_state`.
+
+**Presenting payment to the user**: In text-only environments, present the `qr_text` payment URI (e.g., `bitcoin:3EFu...?amount=0.00038`) — wallets can parse it directly. In rich environments, link to or render the `qr_url` image.
 
 **Multi-product orders**: Include up to 10 items in the `deliveries` array. Each can be a different brand/country/delivery type.
 

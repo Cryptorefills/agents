@@ -4,7 +4,7 @@ description: "Autonomous agent commerce — buy gift cards, top up phones, get e
 compatibility: "Requires: (1) HTTP client for REST API calls, (2) Ethereum wallet with USDC on Base (chain 8453), (3) EIP-712 signing capability for EIP-3009 transferWithAuthorization. No account or API key needed."
 metadata:
   author: cryptorefills
-  version: "1.1.0"
+  version: "1.2.0"
   homepage: "https://www.cryptorefills.com"
   repository: "https://github.com/cryptorefills/agents"
 ---
@@ -34,6 +34,7 @@ When the user needs multi-currency payment options or human-guided purchasing, s
 |-------------|---------|
 | USDC on Base | Chain 8453, contract `0x833589fCD6eDb6E08f4c7C32D4f71b54bDA02913` |
 | EIP-712 signing | Wallet must sign typed data for `transferWithAuthorization` (EIP-3009) |
+| ETH for gas | **Not required** — Cryptorefills relays the `transferWithAuthorization` on-chain. The agent only signs; no gas is needed. |
 | HTTP client | Standard REST API calls (GET, POST) |
 | Account | **None required** |
 
@@ -41,21 +42,24 @@ When the user needs multi-currency payment options or human-guided purchasing, s
 
 Autonomous agents spending real money require strict controls:
 
-- **Set a per-session spending limit** before starting (e.g., $50 max)
+- **Set a per-session spending limit** before starting (default: $100 max per session, $50 max per transaction — increase only if the user explicitly requests it)
 - **Verify the order amount** from the 402 response before signing — never sign blindly
 - **Use a dedicated wallet** with only the necessary USDC balance
+- **Never log, expose, or share the wallet's private key** — use environment variables or a secret manager
 - **Log every transaction**: order_id, product, amount, wallet address, tx hash
 - **Never sign for more** than the `maxAmountRequired` in the 402 response
-- **Validate `payTo` address** — confirm it matches Cryptorefills' expected address
+- **Validate `payTo` address** — confirm it matches the address from the x402 manifest at `/.well-known/x402.json`
+- Gift card codes (`voucher_code`) are cash-like — store securely, never share publicly or write to logs
 - Digital goods are non-refundable once delivered
+- Terms: https://www.cryptorefills.com/terms/
 
 ## Base URL
 
 ```
-https://x402.atomicrails.com
+https://x402.cryptorefills.com
 ```
 
-Manifest: `https://x402.atomicrails.com/.well-known/x402.json`
+Manifest: `https://x402.cryptorefills.com/.well-known/x402.json`
 
 ## Core Workflow
 
@@ -78,7 +82,7 @@ GET /v1/brands?country_code=us
 
 Returns available brands for the country. Each entry includes `brand_name`, `family`, `category`, `min`, `max`.
 
-Use `brand_name` values in the next step. Country codes are **lowercase** ISO 3166-1 Alpha-2 (`us`, `it`, `br`). Note: MCP skills use uppercase — different endpoint.
+Use `brand_name` values in the next step. Country codes are **lowercase** ISO 3166-1 Alpha-2 (`us`, `it`, `br`). If receiving a country code from the catalog or buy skills (uppercase), convert to lowercase before using in x402 endpoints. Note: MCP skills use uppercase — different endpoint.
 
 ### 2. Get Catalog
 
@@ -91,10 +95,14 @@ Returns products with `product_id`, `price_usdc`, `denomination` (fixed) or `min
 - **Fixed products**: Use `product_id` directly. Price is shown as `price_usdc`.
 - **Range products**: `product_value_required` flag indicates you must set `items[].product_value` to the desired amount.
 
+### Pre-flight: Check USDC Balance
+
+Before ordering, verify the wallet has sufficient USDC on Base by calling `balanceOf(walletAddress)` on `0x833589fCD6eDb6E08f4c7C32D4f71b54bDA02913`. The `price_usdc` from the catalog gives an indicative amount; the exact price is confirmed in the 402 response.
+
 ### 3. Create Order — Phase 1 (Get Payment Requirements)
 
 ```bash
-curl -X POST https://x402.atomicrails.com/v1/orders \
+curl -X POST https://x402.cryptorefills.com/v1/orders \
   -H "Content-Type: application/json" \
   -d '{
     "email": "delivery@example.com",
@@ -106,6 +114,7 @@ curl -X POST https://x402.atomicrails.com/v1/orders \
   }'
 # → HTTP 402 with PAYMENT-REQUIRED header
 # product_value is required for range products; omit for fixed-denomination products
+# Optional: add "callback_url": "https://..." for webhook delivery notifications instead of polling
 ```
 
 **Server responds with HTTP 402** and a `PAYMENT-REQUIRED` header containing base64url-encoded JSON:
@@ -155,7 +164,7 @@ Sign with your wallet's private key. See `references/protocol.md` for exact EIP-
 Re-POST the same order with the `PAYMENT-SIGNATURE` header:
 
 ```bash
-curl -X POST https://x402.atomicrails.com/v1/orders \
+curl -X POST https://x402.cryptorefills.com/v1/orders \
   -H "Content-Type: application/json" \
   -H "PAYMENT-SIGNATURE: <base64url-encoded JSON>" \
   -d '{ ...same body as phase 1... }'
@@ -199,13 +208,24 @@ The `PAYMENT-SIGNATURE` header contains base64url-encoded JSON:
 GET /v1/orders/{order_id}
 ```
 
-Poll every 5–10 seconds until `status` is `completed` or `failed`.
+Poll every 5–10 seconds until `status` is `completed` or `failed`. Stop polling after 10 minutes and report the order as potentially stuck — contact support@cryptorefills.com with the `order_id`.
 
 When `completed`, the `deliveries` array contains:
 - `voucher_code` — gift card redemption code
 - `pin` — PIN if required
 - `url` — redemption URL if applicable
 - `brand_name`, `product_name` — what was purchased
+
+### Field Name Mapping (x402 vs MCP)
+
+If switching between x402 and MCP skills, note these field name differences:
+
+| Concept | x402 (this skill) | MCP (cryptorefills-buy) |
+|---|---|---|
+| Gift card code | `voucher_code` | `deliverable.pin_code` |
+| PIN | `pin` (separate field) | included in `pin_code` |
+| Order status | `status` (single field) | `order_state` + `payment_state` |
+| Order ID format | `cr_` prefixed | UUID |
 
 ## Critical Gotchas
 

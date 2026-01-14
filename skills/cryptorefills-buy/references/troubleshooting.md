@@ -98,8 +98,8 @@ Common errors and fixes for Cryptorefills MCP purchases.
 **Fix**: Try broader search terms, different country, or browse with `listBrands`.
 
 ### Wrong Language
-**Cause**: `language` parameter not matching supported codes
-**Fix**: Use one of: `en`, `es`, `fr`, `de`, `it`, `pt`, `zh`, `tr`, `vi`, `tl`.
+**Cause**: Using `language` instead of the correct parameter name `lang`, or using an unsupported language code
+**Fix**: Use the parameter `lang` with one of: `en`, `es`, `fr`, `de`, `it`, `pt`, `zh`, `tr`, `vi`, `tl`.
 
 ## Purchase Elicitation Issues
 

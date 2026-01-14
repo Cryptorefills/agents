@@ -1,6 +1,6 @@
 # Cryptorefills Agent Skills
 
-Buy gift cards, top up phones, and get travel eSIMs with Bitcoin, Ethereum, Solana, USDC, USDT, Litecoin, Dogecoin, and 15+ cryptos on Base, Polygon, Arbitrum, Tron, and more. **No account, no CLI install, no API key** — connect via MCP or let your agent pay autonomously with x402.
+AI agent commerce: buy gift cards, top up phones, and get travel eSIMs with Bitcoin, Ethereum, Solana, USDC, USDT, Litecoin, Dogecoin, and 15+ cryptos on Base, Polygon, Arbitrum, Tron, and more. **No account, no CLI install, no API key** — connect via MCP or let your agent pay autonomously with x402.
 
 | | |
 |---|---|
@@ -65,8 +65,8 @@ Header: User-Agent: Cryptorefills-MCP/1.0
 ## x402 Endpoint
 
 ```
-URL: https://x402.atomicrails.com
-Manifest: https://x402.atomicrails.com/.well-known/x402.json
+URL: https://x402.cryptorefills.com
+Manifest: https://x402.cryptorefills.com/.well-known/x402.json
 Payment: USDC on Base (chain 8453)
 ```
 

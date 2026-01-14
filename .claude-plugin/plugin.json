@@ -1,7 +1,7 @@
 {
   "name": "cryptorefills",
-  "description": "Buy gift cards, top up phones, and get travel eSIMs with Bitcoin, Ethereum, Solana, USDC, USDT, and 15+ cryptos on Base, Polygon, Arbitrum, Tron. No account needed. 10,500+ brands, 180+ countries.",
-  "version": "1.1.0",
+  "description": "AI agent commerce: buy gift cards, top up phones, get travel eSIMs with Bitcoin, Ethereum, Solana, USDC, USDT, and 15+ cryptos on Base, Polygon, Arbitrum, Tron. x402 autonomous purchasing, MCP-native, no account or API key. 10,500+ brands, 180+ countries.",
+  "version": "1.2.0",
   "author": {
     "name": "Cryptorefills",
     "email": "support@cryptorefills.com"
@@ -10,10 +10,16 @@
   "repository": "https://github.com/cryptorefills/agents",
   "license": "MIT",
   "keywords": [
+    "agent-commerce",
+    "agent-payment",
     "gift-cards",
     "esim",
     "mobile-topup",
+    "prepaid",
+    "airtime",
+    "travel",
     "crypto",
+    "stablecoin",
     "mcp",
     "x402",
     "bitcoin",

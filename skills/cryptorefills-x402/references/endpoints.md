@@ -1,8 +1,8 @@
 # x402 REST API Reference
 
-Base URL: `https://x402.atomicrails.com`
+Base URL: `https://x402.cryptorefills.com`
 
-Manifest: `https://x402.atomicrails.com/.well-known/x402.json`
+Manifest: `https://x402.cryptorefills.com/.well-known/x402.json`
 
 ## GET /v1/brands
 
@@ -158,4 +158,5 @@ Poll for order status and voucher delivery.
 | 402 | Payment required — normal phase 1 response |
 | 404 | Order or product not found |
 | 422 | Validation failed — invalid product_id, amount out of range |
+| 403 | Forbidden — invalid or expired payment signature |
 | 500 | Server error — retry after a delay |

@@ -4,7 +4,7 @@ description: "Search gift cards, mobile top-ups, and eSIMs purchasable with Bitc
 compatibility: "Requires MCP client capable of connecting to https://api.cryptorefills.com/mcp/http. No API key or account needed. Header: User-Agent: Cryptorefills-MCP/1.0"
 metadata:
   author: cryptorefills
-  version: "1.1.0"
+  version: "1.2.0"
   homepage: "https://www.cryptorefills.com"
   repository: "https://github.com/cryptorefills/agents"
 ---
@@ -65,7 +65,9 @@ User intent
 ├─ "What's available in [country]?" → listBrands(country_code=XX)
 ├─ "Show me all [category] options" → listProductsForCountry(country_code=XX, family=...)
 ├─ "What crypto can I pay with?" → getCurrencies() or getPaymentViasWithCurrencies()
-└─ "I want to buy" → switch to cryptorefills-buy or cryptorefills-x402
+└─ "I want to buy"
+   ├─ Agent has USDC wallet on Base + can sign EIP-712 → cryptorefills-x402
+   └─ Otherwise (human-guided, multi-currency) → cryptorefills-buy
 ```
 
 ## Task Flows

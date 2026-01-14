@@ -49,6 +49,7 @@ The 402 response includes a `PAYMENT-REQUIRED` header with base64url-encoded JSO
       "description": "$25.00 Amazon Gift Card"
     }
   ],
+  "expiresAt": 1720003600,
   "resource": "POST /v1/orders"
 }
 ```
@@ -131,6 +132,8 @@ After signing, construct the response header as base64url-encoded JSON:
 ```
 
 Base64url-encode this JSON and set it as the `PAYMENT-SIGNATURE` header value.
+
+**Note**: Values in the `authorization` object (`value`, `validAfter`, `validBefore`) are serialized as strings for JSON transport but must be encoded as `uint256` during EIP-712 signing.
 
 ## Security Considerations
 

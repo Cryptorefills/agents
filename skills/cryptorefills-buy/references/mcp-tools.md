@@ -11,7 +11,7 @@ Free-text product search across the catalog.
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | `country_code` | string | Yes | Uppercase Alpha-2 ISO (e.g., `US`, `DE`) |
-| `q` | string | No | Search query text (e.g., "Netflix", "Steam") |
+| `q` | string | Yes | Search query text (e.g., "Netflix", "Steam") |
 | `lang` | string | No | Language code (default: `en`) |
 
 **Important**: The search parameter is `q` (not `query`) and language is `lang` (not `language`).
@@ -26,7 +26,6 @@ Browse all brands available in a country.
 |-----------|------|----------|-------------|
 | `country_code` | string | Yes | Uppercase Alpha-2 ISO |
 | `promo_code` | string | No | Promotional code |
-| `customer_id` | string | No | Customer ID for personalized results |
 
 Returns: Categories array containing brand objects with `brand`, `brand_id`, `family`, `category`, `min`, `max`, `kind`, `is_out_of_stock`.
 
@@ -39,8 +38,8 @@ Full product catalog with advanced filtering.
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | `country_code` | string | Yes | Uppercase Alpha-2 ISO |
-| `brand` | string | No | Filter by exact brand slug (e.g., `"amazon-us"`) — use when you have a product ID prefix |
-| `family` | string | No | Filter by brand display name (e.g., `"Amazon.com"`, `"Steam"`) — use values from `listBrands` response |
+| `brand_name` | string | No | Filter by brand name (e.g., `"Steam"`, `"Amazon.com"`, `"Claro Credits"`) — use values from `listBrands` response |
+| `family_name` | string | No | Filter by brand family name (e.g., `"Amazon.com"`, `"Steam"`, `"eSIM"`) |
 | `coin` | string | No | Filter by payment cryptocurrency |
 | `payment_method` | string | No | Filter by payment method |
 | `lang` | string | No | Language code (default: `en`) |

@@ -9,7 +9,7 @@ Free-text product search. Best for finding a specific brand or narrowing by keyw
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | `country_code` | string | Yes | Uppercase ISO 3166-1 Alpha-2 (e.g., `US`, `DE`, `BR`) |
-| `q` | string | No | Search query text (e.g., "Netflix", "Steam", "eSIM") |
+| `q` | string | Yes | Search query text (e.g., "Netflix", "Steam", "eSIM") |
 | `lang` | string | No | Language code: en, es, fr, de, it, pt, zh, tr, vi, tl. Default: en |
 
 **Important**: The parameter is `q` (not `query`) and `lang` (not `language`).
@@ -35,7 +35,6 @@ Browse all brands available in a country. Returns brand metadata grouped by cate
 |-----------|------|----------|-------------|
 | `country_code` | string | Yes | Uppercase ISO 3166-1 Alpha-2 |
 | `promo_code` | string | No | Promotional code for special offers |
-| `customer_id` | string | No | Customer identifier for personalized results |
 
 **Response structure**: Categories array, each containing `brands` array with: `brand` (display name), `brand_id`, `family`, `category`, `min`, `max`, `kind` (giftcard/mobile_recharge), `is_out_of_stock`.
 
@@ -50,11 +49,12 @@ Full product catalog for a country with detailed filtering.
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | `country_code` | string | Yes | Uppercase ISO 3166-1 Alpha-2 |
-| `brand` | string | No | Filter by exact brand slug |
-| `family` | string | No | Filter by brand display name (e.g., "Amazon.com", "Steam", "eSIM") |
+| `brand_name` | string | No | Filter by brand name (e.g., `"Steam"`, `"Amazon.com"`, `"Claro Credits"`) — use values from `listBrands` response |
+| `family_name` | string | No | Filter by brand family name (e.g., `"Amazon.com"`, `"Steam"`, `"eSIM"`) |
 | `coin` | string | No | Filter by payment cryptocurrency |
 | `payment_method` | string | No | Filter by payment method ID (e.g., `USER_WALLET`, `GATE_PAY`) |
 | `lang` | string | No | Language code. Default: en |
+| `promo_code` | string | No | Promotional code for special offers |
 
 **Response includes**: Product IDs, denominations (fixed list or min/max range), `is_dynamic` flag, pricing.
 

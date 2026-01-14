@@ -82,5 +82,5 @@ Ensure balance >= `maxAmountRequired`.
 | 402 expired | Re-POST without signature to get fresh requirements |
 | Order expired | Create new order with same products |
 | Insufficient balance | Fund wallet with USDC on Base, then retry |
-| Server 500 | Wait 30 seconds, retry once. If persistent, try later |
+| Server 500 | If during phase 2, check order status via GET before retrying — the server may have processed the payment despite the error response. Otherwise, wait 30 seconds and retry once. If persistent, try later |
 | Order failed | Check error details in response. Contact support@cryptorefills.com with order_id and tx hash |
