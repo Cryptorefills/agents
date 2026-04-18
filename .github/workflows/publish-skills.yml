@@ -1,0 +1,83 @@
+name: Publish Agent Skills
+
+# Regenerates conf/agent-skills-index.json + conf/agent-skills/*/SKILL.md in
+# Cryptorefills/cryptorefills-api and opens a PR with the changes.
+#
+# Required repository secret:
+#   CRYPTOREFILLS_API_SYNC_TOKEN — GitHub App token (preferred) or PAT with
+#     Contents: write, Pull requests: write on Cryptorefills/cryptorefills-api.
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'skills/**'
+      - '.github/workflows/publish-skills.yml'
+      - '.github/scripts/generate-agent-skills-index.py'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sync:
+    name: Sync to cryptorefills-api
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout agents
+        uses: actions/checkout@v4
+        with:
+          path: agents
+
+      - name: Checkout cryptorefills-api
+        uses: actions/checkout@v4
+        with:
+          repository: Cryptorefills/cryptorefills-api
+          token: ${{ secrets.CRYPTOREFILLS_API_SYNC_TOKEN }}
+          path: api
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install generator dependencies
+        run: pip install pyyaml
+
+      - name: Generate index and sync SKILL.md files
+        run: |
+          python agents/.github/scripts/generate-agent-skills-index.py \
+            --agents-dir agents \
+            --api-dir api
+
+      - name: Verify digests match served bytes
+        run: bash api/scripts/verify-agent-skills-digests.sh
+
+      - name: Create or update pull request in cryptorefills-api
+        uses: peter-evans/create-pull-request@v6
+        with:
+          path: api
+          token: ${{ secrets.CRYPTOREFILLS_API_SYNC_TOKEN }}
+          base: master
+          branch: chore/sync-agent-skills
+          delete-branch: true
+          commit-message: |
+            chore(agent-skills): sync from agents@${{ github.sha }}
+
+            Automated sync by .github/workflows/publish-skills.yml in
+            Cryptorefills/agents. Regenerates conf/agent-skills-index.json
+            with current sha256 digests and copies SKILL.md files from
+            agents/skills/*/SKILL.md.
+          title: "chore(agent-skills): sync from agents@${{ github.sha }}"
+          body: |
+            Automated sync from [Cryptorefills/agents@${{ github.sha }}](https://github.com/Cryptorefills/agents/commit/${{ github.sha }}).
+
+            ## Changes
+            - Regenerates `conf/agent-skills-index.json` with current sha256 digests
+            - Copies `SKILL.md` files byte-for-byte from `agents/skills/*/SKILL.md` into `conf/agent-skills/*/SKILL.md`
+            - Removes any skills deleted upstream (target directory rebuilt from scratch)
+
+            ## Verification
+            `scripts/verify-agent-skills-digests.sh` ran successfully as part of this workflow before opening this PR — a green PR means every declared digest matches the actual bytes of the corresponding SKILL.md.
+
+            Source: https://github.com/Cryptorefills/agents/actions/runs/${{ github.run_id }}
