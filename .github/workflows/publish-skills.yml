@@ -15,29 +15,35 @@ on:
       - '.github/workflows/publish-skills.yml'
       - '.github/scripts/generate-agent-skills-index.py'
   workflow_dispatch:
+    # Only users with write access to this repo can trigger manually.
 
 permissions:
   contents: read
+
+concurrency:
+  group: publish-skills
+  cancel-in-progress: true
 
 jobs:
   sync:
     name: Sync to cryptorefills-api
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Checkout agents
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4.3.1
         with:
           path: agents
 
       - name: Checkout cryptorefills-api
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4.3.1
         with:
           repository: Cryptorefills/cryptorefills-api
           token: ${{ secrets.CRYPTOREFILLS_API_SYNC_TOKEN }}
           path: api
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065  # v5.6.0
         with:
           python-version: '3.x'
 
@@ -54,7 +60,7 @@ jobs:
         run: bash api/scripts/verify-agent-skills-digests.sh
 
       - name: Create or update pull request in cryptorefills-api
-        uses: peter-evans/create-pull-request@v6
+        uses: peter-evans/create-pull-request@c5a7806660adbe173f04e3e038b0ccdcd758773c  # v6.1.0
         with:
           path: api
           token: ${{ secrets.CRYPTOREFILLS_API_SYNC_TOKEN }}

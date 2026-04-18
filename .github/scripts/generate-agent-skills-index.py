@@ -29,6 +29,12 @@ URL_TEMPLATE = "/.well-known/agent-skills/{name}/SKILL.md"
 
 FRONTMATTER_PATTERN = re.compile(r"^---\n(.*?)\n---\n", re.DOTALL)
 
+# RFC v0.2.0: 1–64 chars, lowercase alphanumerics and hyphens,
+# no leading/trailing/consecutive hyphens. Also prevents path-traversal
+# via crafted directory names (e.g. "..", "foo/bar").
+SKILL_NAME_PATTERN = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
+SKILL_NAME_MAX_LEN = 64
+
 
 def parse_frontmatter(content: str) -> dict:
     match = FRONTMATTER_PATTERN.match(content)
@@ -46,12 +52,23 @@ def sha256_hex(data: bytes) -> str:
 
 def build_entry(skill_dir: pathlib.Path) -> tuple[dict, bytes]:
     name = skill_dir.name
+    if not SKILL_NAME_PATTERN.match(name) or len(name) > SKILL_NAME_MAX_LEN:
+        raise ValueError(
+            f"skill directory name violates RFC v0.2.0 naming rules: {name!r} "
+            f"(expected lowercase alphanumerics + hyphens, 1..{SKILL_NAME_MAX_LEN} chars, "
+            f"no leading/trailing/consecutive hyphens)"
+        )
+
     src = skill_dir / "SKILL.md"
     if not src.is_file():
         raise FileNotFoundError(f"{name}: SKILL.md missing at {src}")
 
     data = src.read_bytes()
-    frontmatter = parse_frontmatter(data.decode("utf-8"))
+    try:
+        text = data.decode("utf-8")
+    except UnicodeDecodeError as exc:
+        raise ValueError(f"{name}: SKILL.md is not valid UTF-8") from exc
+    frontmatter = parse_frontmatter(text)
 
     declared = str(frontmatter.get("name", "")).strip()
     if declared and declared != name:
@@ -60,7 +77,12 @@ def build_entry(skill_dir: pathlib.Path) -> tuple[dict, bytes]:
             file=sys.stderr,
         )
 
-    description = str(frontmatter.get("description", "")).strip()
+    description_raw = frontmatter.get("description", "")
+    if not isinstance(description_raw, str):
+        raise ValueError(
+            f"{name}: description must be a string, got {type(description_raw).__name__}"
+        )
+    description = description_raw.strip()
     if not description:
         raise ValueError(f"{name}: description missing or empty in frontmatter")
     if len(description) > 1024:
