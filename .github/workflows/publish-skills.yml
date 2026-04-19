@@ -47,6 +47,12 @@ jobs:
           private-key: ${{ secrets.CRYPTOREFILLS_SYNC_APP_PRIVATE_KEY }}
           owner: Cryptorefills
           repositories: cryptorefills-api
+          # Downscope the minted token to the minimum this workflow uses —
+          # even if the App's installation is later granted broader scopes,
+          # this step only obtains what is declared here.
+          permissions: |
+            contents: write
+            pull_requests: write
 
       - name: Checkout cryptorefills-api
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4.3.1
