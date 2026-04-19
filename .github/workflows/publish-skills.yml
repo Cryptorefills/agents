@@ -3,9 +3,13 @@ name: Publish Agent Skills
 # Regenerates conf/agent-skills-index.json + conf/agent-skills/*/SKILL.md in
 # Cryptorefills/cryptorefills-api and opens a PR with the changes.
 #
-# Required repository secret:
-#   CRYPTOREFILLS_API_SYNC_TOKEN — GitHub App token (preferred) or PAT with
-#     Contents: write, Pull requests: write on Cryptorefills/cryptorefills-api.
+# Authenticates to cryptorefills-api via a GitHub App installation token
+# minted per-run (auto-revoked after ~1h). Required repository secrets:
+#   CRYPTOREFILLS_SYNC_APP_ID          — GitHub App ID (integer)
+#   CRYPTOREFILLS_SYNC_APP_PRIVATE_KEY — PEM-encoded private key
+#
+# The App must be installed on Cryptorefills/cryptorefills-api with
+# Contents: write and Pull requests: write permissions.
 
 on:
   push:
@@ -35,11 +39,20 @@ jobs:
         with:
           path: agents
 
+      - name: Mint cryptorefills-api installation token
+        id: app-token
+        uses: actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349  # v2.2.2
+        with:
+          app-id: ${{ secrets.CRYPTOREFILLS_SYNC_APP_ID }}
+          private-key: ${{ secrets.CRYPTOREFILLS_SYNC_APP_PRIVATE_KEY }}
+          owner: Cryptorefills
+          repositories: cryptorefills-api
+
       - name: Checkout cryptorefills-api
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4.3.1
         with:
           repository: Cryptorefills/cryptorefills-api
-          token: ${{ secrets.CRYPTOREFILLS_API_SYNC_TOKEN }}
+          token: ${{ steps.app-token.outputs.token }}
           path: api
 
       - name: Set up Python
@@ -63,7 +76,7 @@ jobs:
         uses: peter-evans/create-pull-request@c5a7806660adbe173f04e3e038b0ccdcd758773c  # v6.1.0
         with:
           path: api
-          token: ${{ secrets.CRYPTOREFILLS_API_SYNC_TOKEN }}
+          token: ${{ steps.app-token.outputs.token }}
           base: master
           branch: chore/sync-agent-skills
           delete-branch: true
