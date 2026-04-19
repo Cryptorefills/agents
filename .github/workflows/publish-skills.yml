@@ -1,0 +1,108 @@
+name: Publish Agent Skills
+
+# Regenerates conf/agent-skills-index.json + conf/agent-skills/*/SKILL.md in
+# Cryptorefills/cryptorefills-api and opens a PR with the changes.
+#
+# Authenticates to cryptorefills-api via a GitHub App installation token
+# minted per-run (auto-revoked after ~1h). Required repository secrets:
+#   CRYPTOREFILLS_SYNC_APP_ID          — GitHub App ID (integer)
+#   CRYPTOREFILLS_SYNC_APP_PRIVATE_KEY — PEM-encoded private key
+#
+# The App must be installed on Cryptorefills/cryptorefills-api with
+# Contents: write and Pull requests: write permissions.
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'skills/**'
+      - '.github/workflows/publish-skills.yml'
+      - '.github/scripts/generate-agent-skills-index.py'
+  workflow_dispatch:
+    # Only users with write access to this repo can trigger manually.
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-skills
+  cancel-in-progress: true
+
+jobs:
+  sync:
+    name: Sync to cryptorefills-api
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout agents
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4.3.1
+        with:
+          path: agents
+
+      - name: Mint cryptorefills-api installation token
+        id: app-token
+        uses: actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349  # v2.2.2
+        with:
+          app-id: ${{ secrets.CRYPTOREFILLS_SYNC_APP_ID }}
+          private-key: ${{ secrets.CRYPTOREFILLS_SYNC_APP_PRIVATE_KEY }}
+          owner: Cryptorefills
+          repositories: cryptorefills-api
+          # Downscope the minted token to the minimum this workflow uses —
+          # even if the App's installation is later granted broader scopes,
+          # this step only obtains what is declared here.
+          permissions: |
+            contents: write
+            pull_requests: write
+
+      - name: Checkout cryptorefills-api
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4.3.1
+        with:
+          repository: Cryptorefills/cryptorefills-api
+          token: ${{ steps.app-token.outputs.token }}
+          path: api
+
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065  # v5.6.0
+        with:
+          python-version: '3.x'
+
+      - name: Install generator dependencies
+        run: pip install pyyaml
+
+      - name: Generate index and sync SKILL.md files
+        run: |
+          python agents/.github/scripts/generate-agent-skills-index.py \
+            --agents-dir agents \
+            --api-dir api
+
+      - name: Verify digests match served bytes
+        run: bash api/scripts/verify-agent-skills-digests.sh
+
+      - name: Create or update pull request in cryptorefills-api
+        uses: peter-evans/create-pull-request@c5a7806660adbe173f04e3e038b0ccdcd758773c  # v6.1.0
+        with:
+          path: api
+          token: ${{ steps.app-token.outputs.token }}
+          base: master
+          branch: chore/sync-agent-skills
+          delete-branch: true
+          commit-message: |
+            chore(agent-skills): sync from agents@${{ github.sha }}
+
+            Automated sync by .github/workflows/publish-skills.yml in
+            Cryptorefills/agents. Regenerates conf/agent-skills-index.json
+            with current sha256 digests and copies SKILL.md files from
+            agents/skills/*/SKILL.md.
+          title: "chore(agent-skills): sync from agents@${{ github.sha }}"
+          body: |
+            Automated sync from [Cryptorefills/agents@${{ github.sha }}](https://github.com/Cryptorefills/agents/commit/${{ github.sha }}).
+
+            ## Changes
+            - Regenerates `conf/agent-skills-index.json` with current sha256 digests
+            - Copies `SKILL.md` files byte-for-byte from `agents/skills/*/SKILL.md` into `conf/agent-skills/*/SKILL.md`
+            - Removes any skills deleted upstream (target directory rebuilt from scratch)
+
+            ## Verification
+            `scripts/verify-agent-skills-digests.sh` ran successfully as part of this workflow before opening this PR — a green PR means every declared digest matches the actual bytes of the corresponding SKILL.md.
+
+            Source: https://github.com/Cryptorefills/agents/actions/runs/${{ github.run_id }}
