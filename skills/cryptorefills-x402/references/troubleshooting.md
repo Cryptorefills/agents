@@ -27,6 +27,7 @@ Error handling and recovery for x402 autonomous purchases. Organized by category
 | `unknown_error` from `/verify` | You used SPL `Transfer` (tag `0x03`). Switch to `createTransferCheckedInstruction` (tag `0x0c`). |
 | `transaction instructions length mismatch: 1 < 3 or 1 > 6` | Wrong instruction count. Use the exact 3-instruction preamble: ComputeBudget set-limit + ComputeBudget set-price + TransferChecked. |
 | `feePayer not managed` | The `extra.feePayer` you used is not recognised by CDP. Restart Phase 1 to get a fresh `extra.feePayer` and use it verbatim. |
+| CDP rejection echoes a `"payer":"<pubkey>"` field that doesn't match your `payerKey` | Not a bug. CDP's rejection messages use `"payer"` to mean **the paying agent's wallet** (the SPL `TransferChecked` authority / signer), not the Solana fee payer. The transaction's `payerKey` correctly stays set to `extra.feePayer` (CDP's key) — the field name collision is just CDP's terminology. Don't change `payerKey` in response to this. |
 | `blockhash expired` | You took longer than ~60 s between fetching the blockhash and submitting Phase 2. Re-fetch the blockhash and re-sign. |
 | Phase 2 rejected with "X-Session-Id required" | You omitted `X-Session-Id` on Solana Phase 2. Echo the UUID from the Phase 1 `X-Session-Id` response header. |
 | Wrong `payTo` interpretation | `payTo` is the **owner pubkey, not an ATA**. Derive the recipient ATA from `(payTo, mint)` via `getAssociatedTokenAddress`. |

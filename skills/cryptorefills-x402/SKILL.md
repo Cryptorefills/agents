@@ -375,7 +375,7 @@ const feePayer     = new PublicKey(extra.feePayer);         // CDP signs this sl
 
 const senderAta    = await getAssociatedTokenAddress(mint, signer.publicKey);
 const recipientAta = await getAssociatedTokenAddress(mint, owner);
-const {blockhash}  = await conn.getLatestBlockhash();
+const {blockhash}  = await conn.getLatestBlockhash('finalized');  // 'finalized' is older but accepted by all validators — reduces timing sensitivity
 
 const message = new TransactionMessage({
   payerKey:        feePayer,
@@ -390,6 +390,10 @@ const message = new TransactionMessage({
 
 const tx = new VersionedTransaction(message);
 tx.sign([signer]);                                    // partial — leaves feePayer slot
+// Assert on the pre-compilation array — MessageV0 exposes `compiledInstructions`, not `instructions`.
+// Reading `tx.message.instructions` throws TypeError. Use the source array passed to TransactionMessage.
+if (message.version !== 0) throw new Error('expected v0 message');
+if (tx.message.compiledInstructions.length !== 3) throw new Error('expected exactly 3 instructions');
 if (tx.serialize().length > 1232) throw new Error('tx too large');
 
 const txB64       = Buffer.from(tx.serialize()).toString('base64');     // inner: plain base64

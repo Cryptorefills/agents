@@ -225,7 +225,7 @@ The CDP facilitator enforces a 3-to-6 instruction range and rejects payloads out
 | Field | Value |
 |---|---|
 | `payerKey` | `extra.feePayer` from PAYMENT-REQUIRED — CDP signs this slot |
-| `recentBlockhash` | Fresh from a Solana RPC (default `https://api.mainnet-beta.solana.com`); validity ~60–90 s on the Solana network, but the gateway session TTL is 60 s — that's the binding deadline |
+| `recentBlockhash` | Fresh from a Solana RPC (default `https://api.mainnet-beta.solana.com`) at commitment `'finalized'` — older but accepted by every validator, reducing timing-sensitivity rejections. Validity ~60–90 s on the Solana network, but the gateway session TTL is 60 s — that's the binding deadline |
 | `instructions` | The 3 above, in order |
 | Compile to | v0 message — `compileToV0Message()` |
 | Wrap in | `new VersionedTransaction(message)` |
@@ -268,7 +268,7 @@ The 60-second blockhash window is short. Don't insert any user prompts between P
 - **Verify `extra.feePayer` (Solana)**: must match the CDP-published value. A wrong feePayer means CDP refuses to settle.
 - **Nonce uniqueness (Base)**: never reuse a nonce — cryptographically random per transaction.
 - **Blockhash freshness (Solana)**: re-fetch the blockhash immediately before partial-signing, never reuse.
-- **Instruction-count assertion (Solana)**: assert exactly 3 instructions before serializing.
+- **Instruction-count assertion (Solana)**: assert exactly 3 instructions before serializing. Assert on `tx.message.compiledInstructions.length` (or the pre-compilation array passed to `TransactionMessage`) — `MessageV0` does not expose `tx.message.instructions`; reading it throws `TypeError`.
 - **Domain verification (Base)**: EIP-712 domain must match USDC on Base (chain 8453).
 - **Wallet isolation**: dedicated wallet, limited balance per rail.
 - **No rail mixing**: a session is pinned to the rail chosen in Phase 1. Don't try to switch rails on Phase 2 — the session ID won't match and the signature is rejected.
