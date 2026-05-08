@@ -1,6 +1,6 @@
 # Cryptorefills Agent Skills
 
-AI agent commerce: buy gift cards, top up phones, and get travel eSIMs with Bitcoin, Ethereum, Solana, USDC, USDT, Litecoin, Dogecoin, and 15+ cryptos on Base, Polygon, Arbitrum, Tron, and more. **No account, no CLI install, no API key** — connect via MCP or let your agent pay autonomously with x402.
+AI agent commerce: buy gift cards, top up phones, and get travel eSIMs with Bitcoin, ETH, SOL, USDC, USDT, Litecoin, Dogecoin, and 15+ cryptos on Solana, Ethereum, Base, Polygon, Arbitrum, Tron, and more. **No account, no CLI install, no API key** — connect via MCP or let your agent pay autonomously with x402.
 
 | | |
 |---|---|
