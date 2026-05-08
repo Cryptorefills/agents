@@ -41,7 +41,7 @@ Settings > Plugins > Add marketplace `cryptorefills/agents` > Install **cryptore
 |-------|-------------|
 | **cryptorefills-catalog** | Search and explore 10,500+ gift cards, mobile top-ups, and eSIMs across 180+ countries via MCP. Multi-language, real-time pricing, no account required. |
 | **cryptorefills-buy** | Full purchase workflow via MCP — interactive guided elicitation, fixed and range-based pricing, multi-product orders, all crypto payment methods. No CLI install needed. |
-| **cryptorefills-x402** | Autonomous agent commerce via [x402 protocol](https://docs.x402.org/). USDC on Base — no account, no OAuth, no API key. For AI agents with wallets. |
+| **cryptorefills-x402** | Autonomous agent commerce via [x402 protocol](https://docs.x402.org/). Two settlement rails: USDC on Base (EIP-3009) or USDC SPL on Solana mainnet (partial-signed v0 transaction). No account, no OAuth, no API key, and no native gas needed on either rail. For AI agents with a Base or Solana wallet. |
 
 ## How It Works
 
@@ -49,7 +49,7 @@ Settings > Plugins > Add marketplace `cryptorefills/agents` > Install **cryptore
 
 **cryptorefills-buy** uses the same MCP server for the full purchase lifecycle: search → price → validate → order → pay → track delivery. Supports Bitcoin, Lightning, ETH, USDC, USDT, and more. Includes an interactive `purchaseElicitation` mode that guides the agent step-by-step through the entire purchase — the simplest path from intent to delivered gift card.
 
-**cryptorefills-x402** enables fully autonomous purchasing using the [x402 protocol](https://docs.x402.org/) — HTTP 402 Payment Required as a machine-to-machine payment standard. Agents with USDC on Base and EIP-712 signing can buy without any account or API key.
+**cryptorefills-x402** enables fully autonomous purchasing using the [x402 protocol](https://docs.x402.org/) — HTTP 402 Payment Required as a machine-to-machine payment standard. Agents pick a settlement rail per request: **Base** (USDC, signed via EIP-712 / EIP-3009 `transferWithAuthorization`; Cryptorefills relays on-chain so no ETH is needed) or **Solana** (USDC SPL on mainnet, partial-signed v0 transaction with the CDP facilitator as fee-payer so no SOL is needed). Either way, no account or API key.
 
 ## Country Code Formats
 
@@ -62,12 +62,21 @@ URL: https://api.cryptorefills.com/mcp/http
 Header: User-Agent: Cryptorefills-MCP/1.0
 ```
 
-## x402 Endpoint
+## x402 Endpoints
+
+Two hosts, same REST contract. Pick by rail:
 
 ```
-URL: https://x402.cryptorefills.com
-Manifest: https://x402.cryptorefills.com/.well-known/x402.json
-Payment: USDC on Base (chain 8453)
+Multi-rail (Base default; opt into Solana with X-Preferred-Network: solana)
+  URL:      https://x402.cryptorefills.com
+  Manifest: https://x402.cryptorefills.com/.well-known/x402.json
+
+Solana-only (host-pinned; for registries like pay-skills that demand a Solana 402 by default)
+  URL:      https://solana.x402.cryptorefills.com
+  Manifest: https://solana.x402.cryptorefills.com/.well-known/x402.json
+
+Base rail:    USDC on Base (chain 8453, contract 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913)
+Solana rail:  USDC SPL on mainnet (mint EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v)
 ```
 
 ## Contributing
