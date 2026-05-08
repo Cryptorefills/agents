@@ -6,7 +6,7 @@
   },
   "metadata": {
     "description": "Agent skills for buying gift cards, top-ups, and eSIMs with crypto — no account, no CLI install, MCP-native and x402",
-    "version": "1.2.0"
+    "version": "1.3.0"
   },
   "plugins": [
     {
